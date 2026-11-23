@@ -1,29 +1,23 @@
-"""make.fun news-image-20261122 entry.
-
-Writes the entry image to /output/entry.png. The image ships in this
-repository as entry.png, next to this file; the program copies it
-byte for byte, so every run produces exactly the same bytes.
-"""
-
-import os
-import shutil
-import sys
+#!/usr/bin/env python3
+# News-image entry for make.fun: copy the bundled picture to the output path.
+from pathlib import Path
 
 
-def main() -> int:
-    here = os.path.dirname(os.path.abspath(__file__))
-    src = os.path.join(here, "entry.png")
-    if not os.path.exists(src):
-        src = os.path.join(os.getcwd(), "entry.png")
-    out_dir = "/output"
-    os.makedirs(out_dir, exist_ok=True)
-    dst = os.path.join(out_dir, "entry.png")
-    with open(src, "rb") as f:
-        data = f.read()
-    with open(dst, "wb") as f:
-        f.write(data)
-    return 0
+def entry_path() -> Path:
+    here = Path(__file__).resolve().parent
+    candidate = here / "entry.png"
+    return candidate if candidate.is_file() else Path.cwd() / "entry.png"
 
 
-if __name__ == "__main__":
-    sys.exit(main())
+def run() -> None:
+    source = entry_path()
+    payload = source.read_bytes()
+    target_dir = Path("/output")
+    target_dir.mkdir(parents=True, exist_ok=True)
+    target = target_dir / "entry.png"
+    target.write_bytes(payload)
+    if target.read_bytes() != payload:
+        raise SystemExit("output bytes differ from entry.png")
+
+
+run()
